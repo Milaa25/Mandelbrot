@@ -1,0 +1,194 @@
+Form scherm = new Form();
+scherm.Text = "Mandelbrot";
+scherm.ClientSize = new Size(800, 800);
+
+// 1ste tekstbalkje
+Label tekst = new Label();
+scherm.Controls.Add(tekst);
+tekst.Location = new Point(30, 10);
+tekst.Size = new Size(60, 20);
+
+TextBox invoer = new TextBox();
+scherm.Controls.Add(invoer);
+invoer.Location = new Point(110, 6);
+invoer.Size = new Size(80, 10);
+
+Button knop = new Button();
+scherm.Controls.Add(knop);
+knop.Location = new Point(20, 200);
+knop.Size = new Size(80, 20);
+
+Label uitkomst = new Label();
+scherm.Controls.Add(uitkomst);
+uitkomst.Location = new Point(110, 34);
+uitkomst.Size = new Size(120, 20);
+
+tekst.Text = "midden x:";
+knop.Text = "Go!";
+
+// 2de tekstbalkje
+Label tekst2 = new Label();
+scherm.Controls.Add(tekst2);
+tekst2.Location = new Point(30, 60);
+tekst2.Size = new Size(60, 20);
+
+TextBox invoer2 = new TextBox();
+scherm.Controls.Add(invoer2);
+invoer2.Location = new Point(110, 56);
+invoer2.Size = new Size(80, 10);
+
+Label uitkomst2 = new Label();
+scherm.Controls.Add(uitkomst2);
+uitkomst2.Location = new Point(110, 84);
+uitkomst2.Size = new Size(120, 20);
+
+tekst2.Text = "midden y:";
+
+// 3de tekstbalkje
+Label tekst3 = new Label();
+scherm.Controls.Add(tekst3);
+tekst3.Location = new Point(30, 110);
+tekst3.Size = new Size(60, 20);
+
+TextBox invoer3 = new TextBox();
+scherm.Controls.Add(invoer3);
+invoer3.Location = new Point(110, 106);
+invoer3.Size = new Size(80, 10);
+
+Label uitkomst3 = new Label();
+scherm.Controls.Add(uitkomst3);
+uitkomst3.Location = new Point(110, 134);
+uitkomst3.Size = new Size(120, 20);
+
+tekst3.Text = "schaal:";
+
+// 4de tekstbalkje
+Label tekst4 = new Label();
+scherm.Controls.Add(tekst4);
+tekst4.Location = new Point(30, 160);
+tekst4.Size = new Size(70, 20);
+
+TextBox invoer4 = new TextBox();
+scherm.Controls.Add(invoer4);
+invoer4.Location = new Point(110, 156);
+invoer4.Size = new Size(80, 10);
+
+Label uitkomst4 = new Label();
+scherm.Controls.Add(uitkomst4);
+uitkomst4.Location = new Point(110, 184);
+uitkomst4.Size = new Size(120, 20);
+
+tekst4.Text = "max aantal:";
+
+// Keuzemenu voor kleurenschema
+Label tekst5 = new Label();
+scherm.Controls.Add(tekst5);
+tekst5.Location = new Point(30, 200);
+tekst5.Size = new Size(80, 20);
+tekst5.Text = "Kleurenschema:";
+
+ComboBox kleurKeuze = new ComboBox();
+kleurKeuze.Items.Add("Zwart/Wit");
+kleurKeuze.Items.Add("Kleurenschema");
+kleurKeuze.SelectedIndex = 0; // Standaard zwart/wit
+scherm.Controls.Add(kleurKeuze);
+kleurKeuze.Location = new Point(110, 200);
+kleurKeuze.Size = new Size(80, 20);
+
+// Stel de standaardwaarden in
+invoer.Text = "-0.5";     // Standaard midden x
+invoer2.Text = "0.0";     // Standaard midden y
+invoer3.Text = "0.005";   // Standaard schaal (inzoomniveau)
+invoer4.Text = "100";     // Standaard max aantal iteraties
+
+// Knop-functionaliteit
+knop.Click += (sender, e) => MandelbrotTekenen();
+
+// MouseClick-functionaliteit om in te zoomen
+scherm.MouseClick += (sender, e) =>
+{
+    // Haal huidige waarden op
+    double middenX = double.Parse(invoer.Text);
+    double middenY = double.Parse(invoer2.Text);
+    double schaal = double.Parse(invoer3.Text);
+
+    // Bereken nieuwe middenpunten op basis van muiscoördinaten
+    double nieuweX = middenX + (e.X - scherm.ClientSize.Width / 2) * schaal;
+    double nieuweY = middenY + (e.Y - scherm.ClientSize.Height / 2) * schaal;
+
+    // Update middenpunten en schaal (verklein de schaal voor inzoomen)
+    invoer.Text = nieuweX.ToString();
+    invoer2.Text = nieuweY.ToString();
+    invoer3.Text = (schaal / 2).ToString(); // Zoomniveau verdubbelen
+
+    // Teken opnieuw met nieuwe waarden
+    MandelbrotTekenen();
+};
+
+// Methode voor het tekenen van de Mandelbrot-figuur
+void MandelbrotTekenen()
+{
+    try
+    {
+        // Inputwaarden ophalen
+        double middenX = double.Parse(invoer.Text);
+        double middenY = double.Parse(invoer2.Text);
+        double schaal = double.Parse(invoer3.Text);
+        int maxAantal = int.Parse(invoer4.Text);
+        string kleurKeuzeString = kleurKeuze.SelectedItem.ToString();
+
+        Bitmap bitmap = new Bitmap(scherm.ClientSize.Width, scherm.ClientSize.Height);
+
+        for (int px = 0; px < bitmap.Width; px++)
+        {
+            for (int py = 0; py < bitmap.Height; py++)
+            {
+                double x = middenX + (px - bitmap.Width / 2) * schaal;
+                double y = middenY + (py - bitmap.Height / 2) * schaal;
+
+                int pixelMandelGetal = BerekenMandelbrot(x, y, maxAantal);
+
+                Color kleur;
+                if (kleurKeuzeString == "Zwart/Wit")
+                {
+                    kleur = (pixelMandelGetal == maxAantal || pixelMandelGetal % 2 == 0) ? Color.Black : Color.White;
+                }
+                else
+                {
+                    kleur = Color.FromArgb(
+                        (int)((Math.Sin(pixelMandelGetal * 0.1) * 127 + 128) % 256),
+                        (int)((Math.Cos(pixelMandelGetal * 0.1) * 127 + 128) % 256),
+                        (int)((Math.Sin(pixelMandelGetal * 0.1 + Math.PI / 2) * 127 + 128) % 256)
+                    );
+                }
+
+                bitmap.SetPixel(px, py, kleur);
+            }
+        }
+
+        scherm.BackgroundImage = bitmap;
+    }
+    catch (FormatException)
+    {
+        MessageBox.Show("Voer geldige numerieke waarden in!", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+}
+
+// Mandelbrot-algoritme
+int BerekenMandelbrot(double x, double y, int maxIteraties)
+{
+    double a = 0, b = 0;
+    int iteraties = 0;
+
+    while (a * a + b * b <= 4 && iteraties < maxIteraties)
+    {
+        double tempA = a * a - b * b + x;
+        b = 2 * a * b + y;
+        a = tempA;
+        iteraties++;
+    }
+
+    return iteraties;
+}
+
+Application.Run(scherm);
